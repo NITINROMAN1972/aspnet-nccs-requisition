@@ -9,12 +9,19 @@ $(document).ready(function () {
         allowClear: false,
     });
     $('#xxxxx').on('select2:select', function (e) {
-        __doPostBack('ddImprestCardNo', '');
+        __doPostBack('#xxxxx', '');
     });
 
 
-    // search - requisiton no
+    // service name
     $('#ddServiceName').select2({
+        theme: 'classic',
+        placeholder: 'Select here.....',
+        allowClear: false,
+    });
+
+    // uom
+    $('#ddUOM').select2({
         theme: 'classic',
         placeholder: 'Select here.....',
         allowClear: false,
@@ -30,8 +37,15 @@ $(document).ready(function () {
 
         setTimeout(function () {
 
-            // search - requisiton no
+            // service name
             $('#ddServiceName').select2({
+                theme: 'classic',
+                placeholder: 'Select here.....',
+                allowClear: false,
+            });
+
+            // uom
+            $('#ddUOM').select2({
                 theme: 'classic',
                 placeholder: 'Select here.....',
                 allowClear: false,

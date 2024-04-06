@@ -58,7 +58,6 @@
 
 
 
-
 .dataTables_wrapper {
     margin-top: 20px;
 }
@@ -79,7 +78,7 @@
     padding: 5px; /* Add padding to give some space inside the border */
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }

@@ -21,9 +21,14 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
             ReqDate.Text = DateTime.Now.ToString("yyyy-MM-dd");
 
             ddServiceName_Bind_Dropdown();
+            ddUOM_Bind_Dropdown();
+
+            //Session["UserId"] = "10021"; // amit user
+            //Session["UserId"] = "10031"; // krunal user
+            //Session["UserRole"] = "Tech"; // user role
+
         }
     }
-
 
 
     //=========================={ Paging & Alert }==========================
@@ -38,13 +43,20 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
 
 
 
-    //=========================={ Paging & Alert }==========================
+    //=========================={ Dropdown Bind }==========================
     private void ddServiceName_Bind_Dropdown()
     {
         using (SqlConnection con = new SqlConnection(connectionString))
         {
             con.Open();
-            string sql = "select * from ServMaster891";
+            string sqlxx = $@"select * 
+                            from ServMaster891 as serv
+                            Inner Join PriceList891 as price ON serv.RefID = price.SerName";
+
+            string sql = $@"select * 
+                            from ServMaster891 as serv
+                            Inner Join PriceList891 as price ON serv.RefID = price.RefID";
+
             SqlCommand cmd = new SqlCommand(sql, con);
             cmd.ExecuteNonQuery();
 
@@ -61,102 +73,111 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
         }
     }
 
+    private void ddUOM_Bind_Dropdown()
+    {
+        using (SqlConnection con = new SqlConnection(connectionString))
+        {
+            con.Open();
+            string sql = "select * from UOMs891";
+            SqlCommand cmd = new SqlCommand(sql, con);
+            cmd.ExecuteNonQuery();
+
+            SqlDataAdapter ad = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            ad.Fill(dt);
+            con.Close();
+
+            ddUOM.DataSource = dt;
+            ddUOM.DataTextField = "umName";
+            ddUOM.DataValueField = "UmId";
+            ddUOM.DataBind();
+            ddUOM.Items.Insert(0, new ListItem("------- Select UOM -------", "0"));
+        }
+    }
+
 
 
 
 
     //=========================={ Fetch Reference Numbers }==========================
-    private int GetRequisitionReferenceNumber()
+    private string GetRequisitionReferenceNumber(SqlConnection con, SqlTransaction transaction)
     {
-        string nextRefID = "1000001";
+        string nextRefNo = "1000001";
 
-        using (SqlConnection con = new SqlConnection(connectionString))
-        {
-            con.Open();
-            string sql = "SELECT ISNULL(MAX(CAST(RefNo AS INT)), 1000000) + 1 AS NextRefID FROM Requisition1891";
-            SqlCommand cmd = new SqlCommand(sql, con);
+        string sql = "SELECT ISNULL(MAX(CAST(RefNo AS INT)), 1000000) + 1 AS NextRefNo FROM Requisition1891";
+        SqlCommand cmd = new SqlCommand(sql, con, transaction);
 
-            object result = cmd.ExecuteScalar();
-            if (result != null && result != DBNull.Value) { nextRefID = result.ToString(); }
-            return Convert.ToInt32(nextRefID);
-        }
+        SqlDataAdapter ad = new SqlDataAdapter(cmd);
+        DataTable dt = new DataTable();
+        ad.Fill(dt);
+
+        if (dt.Rows.Count > 0) return dt.Rows[0]["NextRefNo"].ToString();
+        return nextRefNo;
     }
 
-    private int GetItemRefNo()
+    private string GetItemRefNo(SqlConnection con, SqlTransaction transaction)
     {
-        string nextRefID = "1000001";
+        string nextRefNo = "1000001";
 
-        using (SqlConnection con = new SqlConnection(connectionString))
-        {
-            con.Open();
-            string sql = "SELECT ISNULL(MAX(CAST(RefNo AS INT)), 1000000) + 1 AS NextRefID FROM Requisition2891";
-            SqlCommand cmd = new SqlCommand(sql, con);
+        string sql = "SELECT ISNULL(MAX(CAST(RefNo AS INT)), 1000000) + 1 AS NextRefNo FROM Requisition2891";
+        SqlCommand cmd = new SqlCommand(sql, con, transaction);
 
-            object result = cmd.ExecuteScalar();
-            if (result != null && result != DBNull.Value) { nextRefID = result.ToString(); }
-            return Convert.ToInt32(nextRefID);
-        }
+        SqlDataAdapter ad = new SqlDataAdapter(cmd);
+        DataTable dt = new DataTable();
+        ad.Fill(dt);
+
+        if (dt.Rows.Count > 0) return dt.Rows[0]["NextRefNo"].ToString();
+        return nextRefNo;
     }
 
-    private int GetDocumentRefNo()
+    private string GetDocumentRefNo(SqlConnection con, SqlTransaction transaction)
     {
-        string nextRefID = "1000001";
+        string nextRefNo = "1000001";
 
-        using (SqlConnection con = new SqlConnection(connectionString))
-        {
-            con.Open();
-            string sql = "SELECT ISNULL(MAX(CAST(RefNo AS INT)), 1000000) + 1 AS NextRefID FROM BillDocUpload891";
-            SqlCommand cmd = new SqlCommand(sql, con);
+        string sql = "SELECT ISNULL(MAX(CAST(RefNo AS INT)), 1000000) + 1 AS NextRefNo FROM BillDocUpload891";
+        SqlCommand cmd = new SqlCommand(sql, con, transaction);
 
-            object result = cmd.ExecuteScalar();
-            if (result != null && result != DBNull.Value) { nextRefID = result.ToString(); }
-            return Convert.ToInt32(nextRefID);
-        }
+        SqlDataAdapter ad = new SqlDataAdapter(cmd);
+        DataTable dt = new DataTable();
+        ad.Fill(dt);
+
+        if (dt.Rows.Count > 0) return dt.Rows[0]["NextRefNo"].ToString();
+        return nextRefNo;
     }
 
 
 
 
     //=========================={ Fetch Data }==========================
-    private DataTable GetLoggedInUserDetails()
+    private DataTable GetLoggedInUserDetails(SqlConnection con, SqlTransaction transaction)
     {
         string userRole = Session["UserRole"].ToString();
         string userID = Session["UserID"].ToString();
 
-        using (SqlConnection con = new SqlConnection(connectionString))
-        {
-            con.Open();
-            string sql = "select * from UserMaster891 where UserID = @UserID";
-            SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@UserID", userID);
-            cmd.ExecuteNonQuery();
+        string sql = "select * from UserMaster891 where UserID = @UserID";
+        SqlCommand cmd = new SqlCommand(sql, con, transaction);
+        cmd.Parameters.AddWithValue("@UserID", userID);
+        cmd.ExecuteNonQuery();
 
-            SqlDataAdapter ad = new SqlDataAdapter(cmd);
-            DataTable dt = new DataTable();
-            ad.Fill(dt);
-            con.Close();
+        SqlDataAdapter ad = new SqlDataAdapter(cmd);
+        DataTable dt = new DataTable();
+        ad.Fill(dt);
 
-            return dt;
-        }
+        return dt;
     }
 
-    private DataTable GetServicePriceDetails(string serviceCode)
+    private DataTable GetServicePriceDetails(string serviceCode, SqlConnection con, SqlTransaction transaction)
     {
-        using (SqlConnection con = new SqlConnection(connectionString))
-        {
-            con.Open();
-            string sql = "select top 1 * from PriceList891 where SerName = @SerName order by Date desc";
-            SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@SerName", serviceCode);
-            cmd.ExecuteNonQuery();
+        string sql = "select top 1 * from PriceList891 where RefID = @RefID order by SaveOn desc";
+        SqlCommand cmd = new SqlCommand(sql, con, transaction);
+        cmd.Parameters.AddWithValue("@RefID", serviceCode);
+        cmd.ExecuteNonQuery();
 
-            SqlDataAdapter ad = new SqlDataAdapter(cmd);
-            DataTable dt = new DataTable();
-            ad.Fill(dt);
-            con.Close();
+        SqlDataAdapter ad = new SqlDataAdapter(cmd);
+        DataTable dt = new DataTable();
+        ad.Fill(dt);
 
-            return dt;
-        }
+        return dt;
     }
 
 
@@ -164,7 +185,6 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
 
 
     //=========================={ Sweet Alert JS }==========================
-    // sweet alert - success only
     private void getSweetAlertSuccessOnly()
     {
         string title = "Saved!";
@@ -256,8 +276,62 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
             }});
         </script>";
         ClientScript.RegisterStartupScript(this.GetType(), "sweetAlert", sweetAlertScript, false);
+        //ClientScript.RegisterClientScriptBlock(this.Page.GetType(), "sweetAlert", sweetAlertScript, false);
     }
 
+    // html no redirect
+    private void getSweetHTML(string titles, string mssg)
+    {
+        string title = titles;
+        string message = mssg;
+        string icon = "info";
+        string confirmButtonText = "OK";
+        string allowOutsideClick = "false"; // Prevent closing on outside click
+
+        // Create a placeholder textarea for user input
+        string sweetAlertScript = $@"
+            <script>
+                Swal.fire({{
+                    title: '{title}',
+                    html: '{message}',
+                    icon: '{icon}',
+                    confirmButtonText: '{confirmButtonText}',
+                    allowOutsideClick: {allowOutsideClick}
+                }})
+            </script>";
+
+        // Register the script
+        ClientScript.RegisterStartupScript(this.GetType(), "sweetAlertWithTextarea", sweetAlertScript, false);
+    }
+
+    // html with redirect
+    private void getSweetHTMLRedirect(string titles, string mssg, string redirectUrl)
+    {
+        string title = titles;
+        string message = mssg;
+        string icon = "info";
+        string confirmButtonText = "OK";
+        string allowOutsideClick = "false"; // Prevent closing on outside click
+
+        // Create a placeholder textarea for user input
+        string sweetAlertScript = $@"
+            <script>
+                Swal.fire({{
+                    title: '{title}',
+                    html: '{message}',
+                    icon: '{icon}',
+                    confirmButtonText: '{confirmButtonText}',
+                    allowOutsideClick: {allowOutsideClick}
+                }}).then((result) => {{
+                    if (result.isConfirmed) {{
+                        window.location.href = '{redirectUrl}';
+                    }}
+                }});
+            </script>";
+
+        // Register the script
+        ClientScript.RegisterStartupScript(this.GetType(), "sweetAlertWithTextarea", sweetAlertScript, false);
+    }
 
 
     //=========================={ GridView RowDeleting }==========================
@@ -290,23 +364,23 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
         }
 
         // document gridview
-        if (gridView.ID == "GridDocument")
-        {
-            int rowIndex = e.RowIndex;
+        //if (gridView.ID == "GridDocument")
+        //{
+        //    int rowIndex = e.RowIndex;
 
-            DataTable dt = ViewState["DocDetails_VS"] as DataTable;
+        //    DataTable dt = ViewState["DocDetails_VS"] as DataTable;
 
-            if (dt != null && dt.Rows.Count > rowIndex)
-            {
-                dt.Rows.RemoveAt(rowIndex);
+        //    if (dt != null && dt.Rows.Count > rowIndex)
+        //    {
+        //        dt.Rows.RemoveAt(rowIndex);
 
-                ViewState["DocDetails_VS"] = dt;
-                Session["DocUploadDT"] = dt;
+        //        ViewState["DocDetails_VS"] = dt;
+        //        Session["DocUploadDT"] = dt;
 
-                GridDocument.DataSource = dt;
-                GridDocument.DataBind();
-            }
-        }
+        //        GridDocument.DataSource = dt;
+        //        GridDocument.DataBind();
+        //    }
+        //}
     }
 
 
@@ -322,12 +396,13 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
     {
         string serviceName = ddServiceName.SelectedValue ?? "";
         string nameCellLine = CellLineName.Text.ToString();
+        string uom = ddUOM.SelectedValue;
         string quantity = Quantity.Text.ToString();
         string commentsIfAny = CommentsIfAny.Text.ToString() ?? "";
 
         DataTable dt = ViewState["ItemDetails_VS"] as DataTable ?? createItemDatatable();
 
-        AddRowToItemDataTable(dt, serviceName, nameCellLine, quantity, commentsIfAny);
+        AddRowToItemDataTable(dt, serviceName, nameCellLine, uom, quantity, commentsIfAny);
 
         if (dt.Rows.Count > 0)
         {
@@ -340,6 +415,7 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
             Session["ItemDetails"] = dt;
 
             ddServiceName.SelectedIndex = 0;
+            ddUOM.SelectedIndex = 0;
             CellLineName.Text = string.Empty;
             Quantity.Text = string.Empty;
             CommentsIfAny.Text = string.Empty;
@@ -358,6 +434,10 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
         DataColumn NmeCell = new DataColumn("NmeCell", typeof(string));
         dt.Columns.Add(NmeCell);
 
+        // uom
+        DataColumn UOM = new DataColumn("UOM", typeof(string));
+        dt.Columns.Add(UOM);
+
         // quantity
         DataColumn Quty = new DataColumn("Quty", typeof(string));
         dt.Columns.Add(Quty);
@@ -369,7 +449,7 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
         return dt;
     }
 
-    private void AddRowToItemDataTable(DataTable dt, string serviceName, string nameCellLine, string quantity, string commentsIfAny)
+    private void AddRowToItemDataTable(DataTable dt, string serviceName, string nameCellLine, string uom, string quantity, string commentsIfAny)
     {
         // Create a new row
         DataRow row = dt.NewRow();
@@ -381,148 +461,13 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
         else row["ServiceName"] = serviceName;
 
         row["NmeCell"] = nameCellLine;
+        row["UOM"] = uom;
         row["Quty"] = quantity;
         row["Comment"] = commentsIfAny;
 
         // Add the new row to the DataTable
         dt.Rows.Add(row);
     }
-
-
-    protected void DynamicGridView(DataTable dtResp)
-    {
-        if (dtResp.Rows.Count > 0)
-        {
-            // Clear existing columns
-            GridDyanmic.Columns.Clear();
-
-            // turning OFF column auto generation
-            GridDyanmic.AutoGenerateColumns = true;
-
-            // assigning data source to GridView
-            GridDyanmic.DataSource = dtResp;
-            GridDyanmic.DataBind();
-
-            // Dynamically creating BoundFields or Columns using from the data source
-            foreach (DataColumn col in dtResp.Columns)
-            {
-                BoundField boundField = new BoundField();
-                boundField.DataField = col.ColumnName;
-                boundField.HeaderText = col.ColumnName;
-                GridDyanmic.Columns.Add(boundField);
-            }
-
-            // turning ON column auto generation
-            GridDyanmic.AutoGenerateColumns = false;
-        }
-    }
-
-
-
-
-
-    //----------============={ Upload Documents }=============----------
-    protected void btnDocUpload_Click(object sender, EventArgs e)
-    {
-        // setting the file size in web.config file (web.config should not be read only)
-        //settingHttpRuntimeForFileSize();
-
-        if (fileDoc.HasFile)
-        {
-            string FileExtension = System.IO.Path.GetExtension(fileDoc.FileName);
-
-            if (FileExtension == ".xlsx" || FileExtension == ".xls")
-            {
-
-            }
-
-            // file name
-            string onlyFileNameWithExtn = fileDoc.FileName.ToString();
-
-            // getting unique file name
-            string strFileName = GenerateUniqueId(onlyFileNameWithExtn);
-
-            // saving and getting file path
-            string filePath = getServerFilePath(strFileName);
-
-            // Retrieve DataTable from ViewState or create a new one
-            DataTable dt = ViewState["DocDetails_VS"] as DataTable ?? CreateDocDetailsDataTable();
-
-            // filling document details datatable
-            AddRowToDocDetailsDataTable(dt, onlyFileNameWithExtn, filePath);
-
-            // Save DataTable to ViewState
-            ViewState["DocDetails_VS"] = dt;
-            Session["DocUploadDT"] = dt;
-
-            if (dt.Rows.Count > 0)
-            {
-                docGrid.Visible = true;
-
-                // binding document details gridview
-                GridDocument.DataSource = dt;
-                GridDocument.DataBind();
-            }
-        }
-    }
-
-    private string GenerateUniqueId(string strFileName)
-    {
-        long timestamp = DateTime.Now.Ticks;
-        //string guid = Guid.NewGuid().ToString("N"); //N to remove hypen "-" from GUIDs
-        string guid = Guid.NewGuid().ToString();
-        string uniqueID = timestamp + "_" + guid + "_" + strFileName;
-        return uniqueID;
-    }
-
-    private string getServerFilePath(string strFileName)
-    {
-        string orgFilePath = Server.MapPath("~/Portal/Public/" + strFileName);
-
-        // saving file
-        fileDoc.SaveAs(orgFilePath);
-
-        //string filePath = Server.MapPath("~/Portal/Public/" + strFileName);
-        //file:///C:/HostingSpaces/PAWAN/cdsmis.in/wwwroot/Pms2/Portal/Public/638399011215544557_926f9320-275e-49ad-8f59-32ecb304a9f1_EMB%20Recording.pdf
-
-        // replacing server-specific path with the desired URL
-        string baseUrl = "http://101.53.144.92/nccs/Ginie/External?url=..";
-        string relativePath = orgFilePath.Replace(Server.MapPath("~/Portal/Public/"), "Portal/Public/");
-
-        // Full URL for the hyperlink
-        string fullUrl = $"{baseUrl}/{relativePath}";
-
-        return fullUrl;
-    }
-
-    private DataTable CreateDocDetailsDataTable()
-    {
-        DataTable dt = new DataTable();
-
-        // file name
-        DataColumn DocName = new DataColumn("DocName", typeof(string));
-        dt.Columns.Add(DocName);
-
-        // Doc uploaded path
-        DataColumn DocPath = new DataColumn("DocPath", typeof(string));
-        dt.Columns.Add(DocPath);
-
-        return dt;
-    }
-
-    private void AddRowToDocDetailsDataTable(DataTable dt, string onlyFileNameWithExtn, string filePath)
-    {
-        // Create a new row
-        DataRow row = dt.NewRow();
-
-        // Set values for the new row
-        row["DocName"] = onlyFileNameWithExtn;
-        row["DocPath"] = filePath;
-
-        // Add the new row to the DataTable
-        dt.Rows.Add(row);
-    }
-
 
 
 
@@ -537,207 +482,172 @@ public partial class Requisition_New_RequisitionNew : System.Web.UI.Page
     {
         if (itemGrid.Rows.Count > 0)
         {
-            if (GridDocument.Rows.Count > 0)
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                string requisitionRefNo = GetRequisitionReferenceNumber().ToString();
+                con.Open();
+                SqlTransaction transaction = con.BeginTransaction();
 
-                ReqNo.Text = requisitionRefNo.ToString();
-                Session["Requisition_RefNo"] = requisitionRefNo.ToString();
-
-                // inserting bill head
-                bool isRequisitionHeaderSaved = InsertRequisitionHeader(requisitionRefNo);
-
-                if (isRequisitionHeaderSaved)
+                try
                 {
-                    // inserting item details from grid
-                    InsertReqDetails(requisitionRefNo);
+                    string requisitionRefNo = GetRequisitionReferenceNumber(con, transaction);
 
-                    // inserting documents
-                    InsertBillDocument(requisitionRefNo);
+                    ReqNo.Text = requisitionRefNo;
+                    Session["Requisition_RefNo"] = requisitionRefNo;
 
-                    btnSubmit.Enabled = false;
+                    // checking for customer profile details
+                    //bool isCustomerDataPresent = CheckCustomerDetailsComplete(con, transaction);
 
-                    getSweetAlertSuccessRedirectMandatory("Saved Successfully", $"Your Requisition No: {requisitionRefNo} Saved Successfully", "Requisition.aspx");
+                    if (true)
+                    {
+                        // inserting bill head
+                        InsertRequisitionHeader(requisitionRefNo, con, transaction);
+
+                        // inserting item details from grid
+                        InsertReqDetails(requisitionRefNo, con, transaction);
+
+                        if (transaction != null) transaction.Commit();
+
+                        btnSubmit.Enabled = false;
+
+                        string userID = Session["UserID"].ToString();
+
+                        //getSweetAlertSuccessRedirectMandatory("Saved Successfully", $"Your Requisition No: {requisitionRefNo} Saved Successfully", "Requisition.aspx");
+                        string documentLink = $@"http://101.53.144.92/nccs/Ginie/Render/Declaration?userID={userID}";
+                        //string redirect = $@"http://101.53.144.92/nccs/Ginie/External?Url=../Portal/Document/RequisitionDocs.aspx";
+
+                        
+                        string redirect = $@"http://101.53.144.92/nccs/Ginie/External?Url=../Portal/Document/RequisitionDocs.aspx";
+
+                        string html = $@"Your Requisition No: {requisitionRefNo} Saved Successfully. <br/> <br/>";
+                        html += $@"Kindly Click On <a href=""{documentLink}"" target=""_blank"">Download Document</a>, <br/> <br/>";
+                        html += $@"In Order To Re-Upload It In ""<b>Confirm Your Order With Document</b>"" Section To Confirm Your Order!";
+
+                        getSweetHTMLRedirect("Saved Successfully", html, redirect);
+                    }
+                    else
+                    {
+                        getSweetAlertErrorMandatory("No Service Found", "Please Addd Minimum One Service To Proceed Further");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    getSweetAlertErrorMandatory("Some went wrong!", "Requisition did not saved");
+                    transaction.Rollback();
                 }
-            }
-            else
-            {
-                getSweetAlertErrorMandatory("No Documents Found", "please add minimum one document");
+                finally
+                {
+                    con.Close();
+                    transaction.Dispose();
+                }
             }
         }
         else
         {
-            getSweetAlertErrorMandatory("No Service Found", "please minim one services");
+            getSweetAlertErrorMandatory("No Service Found", "Please Addd Minimum One Service To Proceed Further");
         }
     }
 
-    private bool InsertRequisitionHeader(string requisitionRefNo)
+
+    private void InsertRequisitionHeader(string requisitionRefNo, SqlConnection con, SqlTransaction transaction)
     {
-        string reqRefNo = requisitionRefNo;
+        // saveby: userID
+        string userID = Session["UserID"].ToString();
+
+        // requisition date
         DateTime requisitionDate = DateTime.Parse(ReqDate.Text);
 
-        using (SqlConnection con = new SqlConnection(connectionString))
-        {
-            con.Open();
-            string sql = $@"INSERT INTO Requisition1891 (RefNo, ReqNo, ReqDte) 
-                            VALUES (@RefNo, @ReqNo, @ReqDte)";
-            SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@RefNo", reqRefNo);
-            cmd.Parameters.AddWithValue("@ReqNo", reqRefNo);
-            cmd.Parameters.AddWithValue("@ReqDte", requisitionDate.ToString("yyyy-MM-dd"));
-            int rows = cmd.ExecuteNonQuery();
+        // fetching other details
+        DataTable userDT = GetLoggedInUserDetails(con, transaction);
+        string orgType = userDT.Rows[0]["OrgType"].ToString();
+        string taxApplied = "";
 
-            //SqlDataAdapter ad = new SqlDataAdapter(cmd);
-            //DataTable dt = new DataTable();
-            //ad.Fill(dt);
-            con.Close();
+        // Academic     - 1000001
+        // Non-Academic - 1000002
 
-            if (rows > 0) return true;
-            else return false;
-        }
+        if (orgType == "1000001") taxApplied = "NO";
+        else taxApplied = "YES";
+
+
+        string sql = $@"INSERT INTO Requisition1891 (RefNo, ReqNo, ReqDte, TaxApplied, SaveBy) 
+                        VALUES (@RefNo, @ReqNo, @ReqDte, @TaxApplied, @SaveBy)";
+        SqlCommand cmd = new SqlCommand(sql, con, transaction);
+        cmd.Parameters.AddWithValue("@RefNo", requisitionRefNo);
+        cmd.Parameters.AddWithValue("@ReqNo", requisitionRefNo);
+        cmd.Parameters.AddWithValue("@ReqDte", requisitionDate);
+        cmd.Parameters.AddWithValue("@TaxApplied", taxApplied);
+        cmd.Parameters.AddWithValue("@SaveBy", userID);
+        cmd.ExecuteNonQuery();
+
+        //SqlDataAdapter ad = new SqlDataAdapter(cmd);
+        //DataTable dt = new DataTable();
+        //ad.Fill(dt);
     }
 
-    private void InsertReqDetails(string requisitionRefNo)
+    private void InsertReqDetails(string requisitionRefNo, SqlConnection con, SqlTransaction transaction)
     {
+        string userID = Session["UserID"].ToString();
+
         DataTable itemsDT = (DataTable)Session["ItemDetails"];
 
-        DynamicGridView(itemsDT);
 
-        string ReqRefNo = requisitionRefNo;
-
-        using (SqlConnection con = new SqlConnection(connectionString))
+        foreach (DataRow row in itemsDT.Rows)
         {
-            con.Open();
+            string reqNo = GetItemRefNo(con, transaction); // new requisition ref no
 
-            foreach (DataRow row in itemsDT.Rows)
-            {
-                string reqNo = GetItemRefNo().ToString(); // new requisition ref no
-
-                // item items
-                string serviceCode = row["ServiceName"].ToString() ?? string.Empty;
-                string cellEnlistName = row["NmeCell"].ToString();
-                string qty = row["Quty"].ToString();
-                string comments = row["Comment"].ToString() ?? string.Empty;
+            // item items
+            string serviceCode = row["ServiceName"].ToString() ?? string.Empty;
+            string cellEnlistName = row["NmeCell"].ToString();
+            string uom = row["UOM"].ToString();
+            string qty = row["Quty"].ToString();
+            string comments = row["Comment"].ToString() ?? string.Empty;
 
 
-                // fetching other details
-                DataTable userDT = GetLoggedInUserDetails();
-                DataTable servicePriceDT = GetServicePriceDetails(serviceCode);
+            // fetching other details
+            DataTable userDT = GetLoggedInUserDetails(con, transaction);
+            DataTable servicePriceDT = GetServicePriceDetails(serviceCode, con, transaction);
 
-                string orgType = userDT.Rows[0]["OrgType"].ToString();
+            string orgType = userDT.Rows[0]["OrgType"].ToString();
 
-                string taxApplied = "";
-                double servicePrice = 0.00;
+            string taxApplied = "";
+            double servicePrice = 0.00;
 
 
-                // Academic     - 1000001
-                // Non-Academic - 1000002
+            // Academic     - 1000001
+            // Non-Academic - 1000002
 
-                if (orgType == "1000001") taxApplied = "NO";
-                else taxApplied = "YES";
+            if (orgType == "1000001") taxApplied = "NO";
+            else taxApplied = "YES";
 
-                if (orgType == "1000001") servicePrice = Convert.ToDouble(servicePriceDT.Rows[0]["AcadPrice"]);
-                else servicePrice = Convert.ToDouble(servicePriceDT.Rows[0]["NonAcadPrice"]);
+            if (orgType == "1000001") servicePrice = Convert.ToDouble(servicePriceDT.Rows[0]["AcadPrice"]);
+            else servicePrice = Convert.ToDouble(servicePriceDT.Rows[0]["NonAcadPrice"]);
 
-                // inserting bill item details
-                string sql = $@"INSERT INTO Requisition2891 
-                            (RefNo, BillRefNo, ServiceName, NmeCell, Quty, Comment, TaxApplied, OrgType, ServicePrice) 
+            // initial total service price == 0
+            double subItemPrice = 0.00;
+
+            // inserting bill item details
+            string sql = $@"INSERT INTO Requisition2891 
+                            (RefNo, BillRefNo, ServiceName, NmeCell, UOM, Quty, Comment, TaxApplied, OrgType, ServicePrice, SubItemPrice, SaveBy) 
                             VALUES 
-                            (@RefNo, @BillRefNo, @ServiceName, @NmeCell, @Quty, @Comment, @TaxApplied, @OrgType, @ServicePrice)";
+                            (@RefNo, @BillRefNo, @ServiceName, @NmeCell, @UOM, @Quty, @Comment, @TaxApplied, @OrgType, @ServicePrice, @SubItemPrice, @SaveBy)";
 
-                SqlCommand cmd = new SqlCommand(sql, con);
-                cmd.Parameters.AddWithValue("@RefNo", reqNo);
-                cmd.Parameters.AddWithValue("@BillRefNo", ReqRefNo);
-                cmd.Parameters.AddWithValue("@ServiceName", serviceCode);
-                cmd.Parameters.AddWithValue("@NmeCell", cellEnlistName);
-                cmd.Parameters.AddWithValue("@Quty", qty);
-                cmd.Parameters.AddWithValue("@Comment", comments);
-                cmd.Parameters.AddWithValue("@TaxApplied", taxApplied);
-                cmd.Parameters.AddWithValue("@OrgType", orgType);
-                cmd.Parameters.AddWithValue("@ServicePrice", servicePrice);
-                int execute = cmd.ExecuteNonQuery();
-            }
-
-            con.Close();
-        }
-
-    }
-
-    private void InsertBillDocument(string requisitionRefNo)
-    {
-        string reqRefNo = requisitionRefNo;
-
-        DataTable documentsDT = (DataTable)Session["DocUploadDT"];
-
-        using (SqlConnection con = new SqlConnection(connectionString))
-        {
-            con.Open();
-
-            foreach (GridViewRow row in GridDocument.Rows)
-            {
-                int rowIndex = row.RowIndex;
-
-                string docName = documentsDT.Rows[rowIndex]["DocName"].ToString();
-
-                HyperLink hypDocPath = (HyperLink)row.FindControl("DocPath");
-                string docPath = hypDocPath.NavigateUrl;
-
-                // getting new doc ref id
-                int docRefNo = GetDocumentRefNo();
-
-                bool isDocExist = checkForDocuUploadedExist(docRefNo.ToString());
-
-                if (isDocExist)
-                {
-                    //string sql = $@"UPDATE DocUpload874 SET DocName=@DocName, DocPath=@DocPath WHERE RefID=@RefID";
-
-                    //SqlCommand cmd = new SqlCommand(sql, con);
-                    //cmd.Parameters.AddWithValue("@DocName", docName);
-                    //cmd.Parameters.AddWithValue("@DocPath", docPath);
-                    //cmd.Parameters.AddWithValue("@RefID", );
-                    //cmd.ExecuteNonQuery();
-                }
-                else
-                {
-                    string sql = $@"INSERT INTO BillDocUpload891
-                                    (RefNo, BillRefNo, DocName, DocPath) 
-                                    values (@RefNo, @BillRefNo, @DocName, @DocPath)";
-
-                    SqlCommand cmd = new SqlCommand(sql, con);
-                    cmd.Parameters.AddWithValue("@RefNo", docRefNo);
-                    cmd.Parameters.AddWithValue("@BillRefNo", reqRefNo);
-                    cmd.Parameters.AddWithValue("@DocName", docName);
-                    cmd.Parameters.AddWithValue("@DocPath", docPath);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-
-            con.Close();
-        }
-    }
-
-    private bool checkForDocuUploadedExist(string docRefNo)
-    {
-        using (SqlConnection con = new SqlConnection(connectionString))
-        {
-            con.Open();
-            string sql = "SELECT * FROM BillDocUpload891 WHERE RefNo=@RefNo";
-
-            SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@RefNo", docRefNo);
+            SqlCommand cmd = new SqlCommand(sql, con, transaction);
+            cmd.Parameters.AddWithValue("@RefNo", reqNo);
+            cmd.Parameters.AddWithValue("@BillRefNo", requisitionRefNo);
+            cmd.Parameters.AddWithValue("@ServiceName", serviceCode);
+            cmd.Parameters.AddWithValue("@NmeCell", cellEnlistName);
+            cmd.Parameters.AddWithValue("@UOM", uom);
+            cmd.Parameters.AddWithValue("@Quty", qty);
+            cmd.Parameters.AddWithValue("@Comment", comments);
+            cmd.Parameters.AddWithValue("@TaxApplied", taxApplied);
+            cmd.Parameters.AddWithValue("@OrgType", orgType);
+            cmd.Parameters.AddWithValue("@SubItemPrice", subItemPrice);
+            cmd.Parameters.AddWithValue("@ServicePrice", servicePrice);
+            cmd.Parameters.AddWithValue("@SaveBy", userID);
             cmd.ExecuteNonQuery();
-
-            SqlDataAdapter ad = new SqlDataAdapter(cmd);
-            DataTable dt = new DataTable();
-            ad.Fill(dt);
-            con.Close();
-
-            if (dt.Rows.Count > 0) return true;
-            else return false;
         }
+
     }
+
+
+
+
 }

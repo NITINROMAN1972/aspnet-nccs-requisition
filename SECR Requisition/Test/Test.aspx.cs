@@ -11,20 +11,24 @@ using System.Web.UI.WebControls;
 public partial class Test_Test : System.Web.UI.Page
 {
     string connectionString = ConfigurationManager.ConnectionStrings["Ginie"].ConnectionString;
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
             // SECR = 751
-            // NCCS = 
+            // NCCS = 891
+            // MPKV = ?
 
             // get all table columns
-            string tableName = "mnu751";
-            DataTable dtResp = GetResponsibilitiesData(tableName);
-            DynamicGridView(dtResp);
+            //DataTable dtResp = GetResponsibilitiesData();
+            //DynamicGridView(dtResp);
 
             // get current loggedin user role
-            string currentLoggedIn_Role = Session["UserRole"].ToString();
+            string userRole = Session["UserRole"].ToString();
+            string userID = Session["UserId"].ToString();
+
+            alert($"userRole : {userRole}");
 
             // get all avaiable sessions
             //DataTable dtSessions = GetSessionsData();
@@ -40,14 +44,20 @@ public partial class Test_Test : System.Web.UI.Page
         ScriptManager.RegisterStartupScript(this, this.GetType(), "messageScript", script, true);
     }
 
-    private DataTable GetResponsibilitiesData(string tableName)
+
+
+
+    private DataTable GetResponsibilitiesData()
     {
+        string userID = Session["UserId"].ToString();
+
+
         using (SqlConnection con = new SqlConnection(connectionString))
         {
             con.Open();
-            string sql = $"select * from {tableName}";
+            string sql = "select * from Requisition1891 where SaveBy = @SaveBy order by ReqNo desc";
             SqlCommand cmd = new SqlCommand(sql, con);
-            //cmd.Parameters.AddWithValue("@RefNo", "10214");
+            cmd.Parameters.AddWithValue("@SaveBy", userID);
             cmd.ExecuteNonQuery();
 
             SqlDataAdapter ad = new SqlDataAdapter(cmd);
@@ -92,6 +102,23 @@ public partial class Test_Test : System.Web.UI.Page
 
 
 
+    private DataTable GetSessionsData()
+    {
+        DataTable dtSessions = new DataTable();
+        dtSessions.Columns.Add("SessionName");
+        dtSessions.Columns.Add("SessionValue");
+
+        // Loop through all sessions and add them to the DataTable
+        foreach (string sessionName in Session.Contents)
+        {
+            DataRow row = dtSessions.NewRow();
+            row["SessionName"] = sessionName;
+            row["SessionValue"] = Session[sessionName].ToString();
+            dtSessions.Rows.Add(row);
+        }
+
+        return dtSessions;
+    }
 
     protected void DynamicGridView_Session(DataTable dtSessions)
     {
@@ -119,23 +146,5 @@ public partial class Test_Test : System.Web.UI.Page
             // turning ON column auto generation
             GridDyanmic.AutoGenerateColumns = false;
         }
-    }
-
-    private DataTable GetSessionsData()
-    {
-        DataTable dtSessions = new DataTable();
-        dtSessions.Columns.Add("SessionName");
-        dtSessions.Columns.Add("SessionValue");
-
-        // Loop through all sessions and add them to the DataTable
-        foreach (string sessionName in Session.Contents)
-        {
-            DataRow row = dtSessions.NewRow();
-            row["SessionName"] = sessionName;
-            row["SessionValue"] = Session[sessionName].ToString();
-            dtSessions.Rows.Add(row);
-        }
-
-        return dtSessions;
     }
 }

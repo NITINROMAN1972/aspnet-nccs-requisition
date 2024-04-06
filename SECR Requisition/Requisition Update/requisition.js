@@ -20,8 +20,18 @@ $(document).ready(function () {
         allowClear: false,
     });
 
+
+
+
     // service name
     $('#ddServiceName').select2({
+        theme: 'classic',
+        placeholder: 'Select here.....',
+        allowClear: false,
+    });
+
+    // uom
+    $('#ddUOM').select2({
         theme: 'classic',
         placeholder: 'Select here.....',
         allowClear: false,
@@ -47,6 +57,8 @@ $(document).ready(function () {
                 allowClear: false,
             });
 
+
+
             // service name
             $('#ddServiceName').select2({
                 theme: 'classic',
@@ -54,7 +66,66 @@ $(document).ready(function () {
                 allowClear: false,
             });
 
+            // uom
+            $('#ddUOM').select2({
+                theme: 'classic',
+                placeholder: 'Select here.....',
+                allowClear: false,
+            });
+
+
+
+
         }, 0);
+    });
+
+
+
+
+
+
+    // datatables
+    $("#gridSearchxx").prepend(
+
+        $("<thead></thead>").append(
+            $("#gridSearchxx").find("tr:first")
+        )
+
+    ).DataTable({
+
+        scrollX: false,
+        sScrollXInner: "100%",
+        bFilter: true,
+        bSort: true,
+        bPaginate: true,
+
+        scrollCollapse: false,
+        paging: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        lengthChange: true,
+        responsive: true,
+
+        pagingType: 'full_numbers',
+
+        lengthMenu: [
+            [5, 10, 20, 25, 50, -1],
+            [5, 10, 20, 25, 50, "All"]
+        ],
+
+        search: {
+            return: false
+        },
+        language: {
+            search: "Search: ",
+            decimal: ',',
+            thousands: '.'
+        },
+        initComplete: function () {
+            $('.dataTables_filter input').attr('placeholder', 'Search here......')
+        },
+
     });
 
 });
