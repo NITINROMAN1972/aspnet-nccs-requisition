@@ -41,21 +41,4 @@ Global
 	EndGlobalSection
 EndGlobal
 
-<--New Addd 
 
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{51680FA6-6C45-4DEE-BA6C-6FDB7FF9708B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{51680FA6-6C45-4DEE-BA6C-6FDB7FF9708B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {8A85AE0B-3E86-4C44-ABC2-A7BCA5C32BEB}
-	EndGlobalSection
-EndGloba-->
